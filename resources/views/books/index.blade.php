@@ -7,7 +7,10 @@
 @foreach ($books as $book)
 
     <div class="card">
-        <h2>{{ $book->title }}</h2>
+        <h2>
+    <a href="/books/{{ $book->id }}">
+        {{ $book->title }}
+    </a></h2>
 
         <p>
             <strong>Author:</strong>
