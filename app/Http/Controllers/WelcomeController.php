@@ -6,8 +6,8 @@ use Illuminate\Http\Request;
 
 class WelcomeController extends Controller
 {
-    public function index(){
-        return 'hello from readora';
-        return view('welcome');
-    }
+    public function index()
+{
+    return view('home.index');
+}
 }
