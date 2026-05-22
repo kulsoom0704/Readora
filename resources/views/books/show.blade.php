@@ -3,6 +3,7 @@
 @section('content')
 
 <div class="card">
+    <img src="/{{ $book->image }}" class="book-image">
 
     <h1>{{ $book->title }}</h1>
 

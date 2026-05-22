@@ -2,15 +2,20 @@
 
 @section('content')
 
-<h1>Books</h1>
+<div class="books-grid">
 
 @foreach ($books as $book)
 
-    <div class="card">
+    <div class="book-card">
+
+        <img src="/{{ $book->image }}" class="book-image">
+         <div class="book-content">
+
         <h2>
-    <a href="/books/{{ $book->id }}">
-        {{ $book->title }}
-    </a></h2>
+            <a href="/books/{{ $book->id }}">
+                {{ $book->title }}
+            </a>
+        </h2>
 
         <p>
             <strong>Author:</strong>
@@ -18,15 +23,13 @@
         </p>
 
         <p>
-            {{ $book->description }}
+            {{ Str::limit($book->description, 100) }}
         </p>
 
-        <p>
-            <strong>Category:</strong>
-            {{ $book->category->name }}
-        </p>
+    </div>
     </div>
 
 @endforeach
 
+</div>
 @endsection
