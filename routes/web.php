@@ -22,8 +22,5 @@ Route::get('/admin/users', [AdminController::class, 'index']);
 Route::get('/admin/make-admin/{id}', [AdminController::class, 'makeAdmin']);
 
 Route::get('/admin/remove-admin/{id}', [AdminController::class, 'removeAdmin']);
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth'])->name('dashboard');
 
 require __DIR__.'/auth.php';
