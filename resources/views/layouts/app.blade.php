@@ -70,6 +70,14 @@
             border-top-left-radius: 16px;
             border-top-right-radius: 16px;
 }
+        .book-title {
+            font-weight: bold;
+            font-size: 28px;
+            color: #111827;
+}
+        .book-title:hover {
+            color: #000000;
+        }
         .book-content {
         padding: 15px;
 }
@@ -84,52 +92,52 @@
         .book-card h2 {
             margin-top: 15px;
 }
-.hero {
-    height: 80vh;
-    background-image: url('/images/homecover.jpg');
-    background-size: cover;
-    background-position: center;
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    padding: 60px;
-    color: white;
-    position: relative;
-    overflow: hidden;
+        .hero {
+            height: 80vh;
+            background-image: url('/images/homecover.jpg');
+            background-size: cover;
+            background-position: center;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            padding: 60px;
+            color: white;
+            position: relative;
+            overflow: hidden;
 }
 
-.hero::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.45);
-}
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+        }
 
-.hero-text {
-    position: relative;
-    z-index: 2;
-    max-width: 500px;
-}
+        .hero-text {
+            position: relative;
+            z-index: 2;
+            max-width: 500px;
+        }
 
-.hero h1 {
-    font-size: 60px;
-    margin-bottom: 20px;
-}
+        .hero h1 {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
 
-.hero p {
-    font-size: 20px;
-    line-height: 1.6;
-    margin-bottom: 30px;
-}
+        .hero p {
+            font-size: 20px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
 
-.hero-button {
-    background: white;
-    color: black;
-    padding: 14px 24px;
-    border-radius: 10px;
-    text-decoration: none;
-    font-weight: bold;
-}
+        .hero-button {
+            background: white;
+            color: black;
+            padding: 14px 24px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>

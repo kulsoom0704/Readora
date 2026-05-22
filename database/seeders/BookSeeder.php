@@ -25,7 +25,7 @@ class BookSeeder extends Seeder
             'author' => 'J.R.R. Tolkien',
             'description' => 'The Hobbit follows Bilbo Baggins, a quiet hobbit who is unexpectedly taken on a dangerous adventure with a group of dwarves to reclaim their homeland and treasure from the dragon Smaug.',
             'image' => 'images/hobbit.jpg',
-            'category_id' => 2,
+            'category_id' => 1,
         ]);
 
         Book::create([
@@ -42,6 +42,27 @@ class BookSeeder extends Seeder
             'description' => 'Dune follows Paul Atreides as he navigates politics, war, and destiny on the dangerous desert planet Arrakis, the only source of the valuable spice melange.',
             'image' => 'images/dune.jpg',
             'category_id' => 3,
+        ]);
+        Book::create([
+            'title' => 'The Da Vinci Code',
+            'author' => 'Dan Brown',
+            'description' => 'A mystery thriller involving secret societies, codes, and hidden truths.',
+            'image' => 'images/davinci.jpg',
+            'category_id' => 4,
+        ]);
+        Book::create([
+            'title' => 'Dracula',
+            'author' => 'Bram Stoker',
+            'description' => 'A classic horror novel about Count Dracula and the terror he brings.',
+            'image' => 'images/dracula.jpg',
+            'category_id' => 5,
+        ]);
+        Book::create([
+        'title' => 'Sapiens',
+        'author' => 'Yuval Noah Harari',
+        'description' => 'A historical journey through the evolution of humankind.',
+        'image' => 'images/sapiens.jpg',
+        'category_id' => 6,
         ]);
     }
 }
