@@ -38,6 +38,9 @@ Remove admin rights
 Manage users
 Access admin pages
 Admin routes are protected using middleware
+Username: admin
+Email: admin@ehb.be
+Password: Password!321
 
 Profile System:
 Each user has:
@@ -57,8 +60,7 @@ Horror
 History
 Categories help users easily browse books.
 
-Dashboard
-
+home page:
 After logging in, users are redirected to home page where they can:
 Navigate through the website
 Access profile settings
@@ -145,7 +147,6 @@ MySQL database
 
 9. Challenges Faced
 During development, some challenges included:
-
 Understanding Laravel MVC structure
 Setting up middleware correctly
 Protecting admin routes
