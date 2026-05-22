@@ -23,4 +23,5 @@ Route::get('/admin/make-admin/{id}', [AdminController::class, 'makeAdmin']);
 
 Route::get('/admin/remove-admin/{id}', [AdminController::class, 'removeAdmin']);
 
+Route::view('/faq', 'faq');
 require __DIR__.'/auth.php';
