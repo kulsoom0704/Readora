@@ -18,14 +18,13 @@ Route::get('/categories', [CategoryController::class, 'index']);
 
 Route::get('/categories/{id}', [CategoryController::class, 'show']);
 
-Route::get('/admin/users', [AdminController::class, 'index']);
+Route::middleware(['admin'])->group(function () {
 
-Route::get('/admin/make-admin/{id}', [AdminController::class, 'makeAdmin']);
+    Route::get('/admin/users', [AdminController::class, 'index']);
 
-Route::get('/admin/remove-admin/{id}', [AdminController::class, 'removeAdmin']);
+    Route::get('/admin/make-admin/{id}', [AdminController::class, 'makeAdmin']);
 
-Route::view('/faq', 'faq');
-Route::get('/contact', [ContactController::class, 'index']);
+    Route::get('/admin/remove-admin/{id}', [AdminController::class, 'removeAdmin']);
 
-Route::post('/contact', [ContactController::class, 'send']);
+});
 require __DIR__.'/auth.php';
