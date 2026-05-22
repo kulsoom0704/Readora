@@ -25,6 +25,9 @@
                              <x-nav-link href="/faq">
                                  FAQ
                             </x-nav-link>
+                            <x-nav-link href="/contact">
+                                Contact
+                            </x-nav-link>
                              @auth
 
     @if(Auth::user()->is_admin)
@@ -89,6 +92,9 @@
         </x-slot>
 
         <x-slot name="content">
+             <x-dropdown-link :href="route('profile.edit')">
+                            Profile
+                </x-dropdown-link>
 
             <form method="POST" action="{{ route('logout') }}">
                 @csrf

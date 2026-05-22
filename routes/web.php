@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ContactController;
 
 Route::get('/', function () {
     return view('home.index');
@@ -24,4 +25,7 @@ Route::get('/admin/make-admin/{id}', [AdminController::class, 'makeAdmin']);
 Route::get('/admin/remove-admin/{id}', [AdminController::class, 'removeAdmin']);
 
 Route::view('/faq', 'faq');
+Route::get('/contact', [ContactController::class, 'index']);
+
+Route::post('/contact', [ContactController::class, 'send']);
 require __DIR__.'/auth.php';
