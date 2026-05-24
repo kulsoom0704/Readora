@@ -2,10 +2,18 @@
 
 @section('content')
 
-<div class="card">
-    <h1>Welcome to Readora</h1>
+<div class="hero">
+    <div class="hero-text">
+        <h1>Welcome to Readora</h1>
 
-    <p>Your online book club platform.</p>
+    <p>
+    Discover amazing books, explore categories,
+    and join our reading community.
+    </p>
+
+    <a href="/books" class="hero-button">
+            Explore Books
+    </a>
 </div>
-
+</div>
 @endsection

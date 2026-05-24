@@ -2,31 +2,39 @@
 
 @section('content')
 
-<h1>Books</h1>
+<div class="books-grid">
 
-@foreach ($books as $book)
+    @foreach ($books as $book)
 
-    <div class="card">
-        <h2>
-    <a href="/books/{{ $book->id }}">
-        {{ $book->title }}
-    </a></h2>
+        <a href="/books/{{ $book->id }}" class="book-link">
 
-        <p>
-            <strong>Author:</strong>
-            {{ $book->author }}
-        </p>
+            <div class="book-card">
 
-        <p>
-            {{ $book->description }}
-        </p>
+                <img src="/{{ $book->image }}" class="book-image">
 
-        <p>
-            <strong>Category:</strong>
-            {{ $book->category->name }}
-        </p>
-    </div>
+                <div class="book-content">
 
-@endforeach
+                    <h2 class="book-title">
+                        {{ $book->title }}
+                    </h2>
+
+                    <p>
+                        <strong>Author:</strong>
+                        {{ $book->author }}
+                    </p>
+
+                    <p>
+                        {{ Str::limit($book->description, 100) }}
+                    </p>
+
+                </div>
+
+            </div>
+
+        </a>
+
+    @endforeach
+
+</div>
 
 @endsection
