@@ -18,6 +18,12 @@ Route::get('/categories', [CategoryController::class, 'index']);
 
 Route::get('/categories/{id}', [CategoryController::class, 'show']);
 
+Route::view('/faq', 'faq');
+
+Route::get('/contact', [ContactController::class, 'index']);
+
+Route::post('/contact', [ContactController::class, 'send']);
+
 Route::middleware(['admin'])->group(function () {
 
     Route::get('/admin/users', [AdminController::class, 'index']);
