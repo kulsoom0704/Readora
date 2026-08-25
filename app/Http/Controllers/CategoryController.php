@@ -13,7 +13,7 @@ class CategoryController extends Controller
         return view('categories.index', compact('categories'));
     }
 
-    public function show($id)
+    public function show($id) 
     {
         $category = Category::findOrFail($id);
 

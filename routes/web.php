@@ -32,5 +32,22 @@ Route::middleware(['admin'])->group(function () {
 
     Route::get('/admin/remove-admin/{id}', [AdminController::class, 'removeAdmin']);
 
+    Route::get('/admin/books', [BookController::class, 'adminIndex'])
+        ->name('admin.books.index');
+
+    Route::get('/admin/books/create', [BookController::class, 'create'])
+        ->name('admin.books.create');
+
+    Route::post('/admin/books', [BookController::class, 'store'])
+        ->name('admin.books.store');
+
+    Route::get('/admin/books/{book}/edit', [BookController::class, 'edit'])
+        ->name('admin.books.edit');
+
+    Route::put('/admin/books/{book}', [BookController::class, 'update'])
+        ->name('admin.books.update');
+
+    Route::delete('/admin/books/{book}', [BookController::class, 'destroy'])
+        ->name('admin.books.destroy');
 });
 require __DIR__.'/auth.php';

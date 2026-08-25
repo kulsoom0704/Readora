@@ -35,6 +35,9 @@
         <x-nav-link href="/admin/users">
             Manage Users
         </x-nav-link>
+        <x-nav-link href="{{ route('admin.books.index') }}">
+            Manage Books
+        </x-nav-link>
 
     @endif
 
