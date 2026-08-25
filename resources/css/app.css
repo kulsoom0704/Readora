@@ -198,6 +198,85 @@
 .save-book-button:hover {
     background: #555;
 }
+
+/* =========================
+   BOOK DETAILS
+========================= */
+
+.book-details-card {
+    max-width: 1000px;
+    margin: 50px auto;
+    padding: 40px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+
+    display: flex;
+    gap: 50px;
+    align-items: flex-start;
+}
+
+.book-details-image {
+    flex: 0 0 300px;
+}
+
+.book-details-image img {
+    width: 300px;
+    height: 430px;
+    object-fit: cover;
+    border-radius: 10px;
+    display: block;
+}
+
+.book-details-content {
+    flex: 1;
+}
+
+.book-details-content h1 {
+    margin-top: 0;
+    margin-bottom: 25px;
+    font-size: 32px;
+}
+
+.book-details-content p {
+    margin: 18px 0;
+    line-height: 1.6;
+}
+
+.book-category {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    background: #f1f1f1;
+}
+
+/* Mobile */
+
+@media (max-width: 700px) {
+
+    .book-details-card {
+        margin: 25px 15px;
+        padding: 25px;
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .book-details-image {
+        width: 100%;
+        text-align: center;
+    }
+
+    .book-details-image img {
+        width: 220px;
+        height: 320px;
+        margin: 0 auto;
+    }
+
+    .book-details-content h1 {
+        font-size: 26px;
+    }
+}
+
 /* Mobile */
 
 @media (max-width: 700px) {

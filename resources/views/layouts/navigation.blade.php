@@ -1,170 +1,171 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
-    <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <div class="flex">
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    <a href="/" class="text-xl font-bold">
-                        Readora
+<nav x-data="{ open: false }" class="main-nav">
+
+    <div class="nav-inner">
+
+        <!-- Logo -->
+        <div class="nav-logo">
+            <a href="/">
+                Readora
+            </a>
+        </div>
+
+        <!-- Desktop Navigation -->
+        <div class="desktop-nav">
+
+            <a href="/">Home</a>
+            <a href="/books">Books</a>
+            <a href="/categories">Categories</a>
+            <a href="/faq">FAQ</a>
+            <a href="/contact">Contact</a>
+
+            @auth
+                @if(Auth::user()->is_admin)
+
+                    <a href="/admin/users">
+                        Manage Users
                     </a>
-                </div>
-                <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-            
-                <x-nav-link href="/">
-                               Home
-                </x-nav-link>
 
-                 <x-nav-link href="/books">
-                              Books
-                </x-nav-link>
+                    <a href="{{ route('admin.books.index') }}">
+                        Manage Books
+                    </a>
 
-                <x-nav-link href="/categories">
-                             Categories
-                             <x-nav-link href="/faq">
-                                 FAQ
-                            </x-nav-link>
-                            <x-nav-link href="/contact">
-                                Contact
-                            </x-nav-link>
-                             @auth
+                @endif
+            @endauth
 
-    @if(Auth::user()->is_admin)
+        </div>
 
-        <x-nav-link href="/admin/users">
-            Manage Users
-        </x-nav-link>
-        <x-nav-link href="{{ route('admin.books.index') }}">
-            Manage Books
-        </x-nav-link>
+        <!-- Desktop Login / Register -->
+        <div class="desktop-auth">
 
-    @endif
-
-@endauth
-                </x-nav-link>
-
-                </div>
-                </div>
-
-            <!-- Settings Dropdown -->
             @guest
 
-<div class="hidden sm:flex sm:items-center sm:ms-6">
+                <a href="{{ route('login') }}">
+                    Login
+                </a>
 
-    <a href="{{ route('login') }}" class="text-sm text-gray-700 me-4">
-        Login
-    </a>
+                <a href="{{ route('register') }}">
+                    Register
+                </a>
 
-    <a href="{{ route('register') }}" class="text-sm text-gray-700">
-        Register
-    </a>
-
-</div>
-
-@endguest
+            @endguest
 
 
-@auth
+            @auth
 
-<!-- Settings Dropdown -->
-<div class="hidden sm:flex sm:items-center sm:ms-6">
+                <x-dropdown align="right" width="48">
 
-    <x-dropdown align="right" width="48">
+                    <x-slot name="trigger">
 
-        <x-slot name="trigger">
+                        <button class="user-button">
 
-            <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
+                            <span>
+                                {{ Auth::user()->name }}
 
-                <div>
-                    {{ Auth::user()->name }}
+                                @if(Auth::user()->is_admin)
+                                    (Admin)
+                                @endif
+                            </span>
 
-                @if(Auth::user()->is_admin)
-                    (Admin)
-                @endif
+                            <span>⌄</span>
+
+                        </button>
+
+                    </x-slot>
+
+                    <x-slot name="content">
+
+                        <x-dropdown-link :href="route('profile.edit')">
+                            Profile
+                        </x-dropdown-link>
+
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+
+                            <x-dropdown-link
+                                :href="route('logout')"
+                                onclick="event.preventDefault();
+                                this.closest('form').submit();">
+
+                                Log Out
+
+                            </x-dropdown-link>
+
+                        </form>
+
+                    </x-slot>
+
+                </x-dropdown>
+
+            @endauth
+
+        </div>
+
+
+        <!-- Mobile Hamburger -->
+        <button
+            class="mobile-menu-button"
+            @click="open = !open"
+            type="button">
+
+            <span x-show="!open">☰</span>
+            <span x-show="open">✕</span>
+
+        </button>
+
     </div>
 
-                <div class="ms-1">
-                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                    </svg>
-                </div>
 
-            </button>
+    <!-- Mobile Navigation -->
+    <div
+        class="mobile-nav"
+        x-show="open"
+        x-transition>
 
-        </x-slot>
+        <a href="/">Home</a>
 
-        <x-slot name="content">
-             <x-dropdown-link :href="route('profile.edit')">
-                            Profile
-                </x-dropdown-link>
+        <a href="/books">Books</a>
+
+        <a href="/categories">Categories</a>
+
+        <a href="/faq">FAQ</a>
+
+        <a href="/contact">Contact</a>
+
+        @auth
+
+            @if(Auth::user()->is_admin)
+
+                <a href="/admin/users">
+                    Manage Users
+                </a>
+
+                <a href="{{ route('admin.books.index') }}">
+                    Manage Books
+                </a>
+
+            @endif
 
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
 
-                <x-dropdown-link :href="route('logout')"
-                    onclick="event.preventDefault();
-                    this.closest('form').submit();">
+                <button type="submit">
+                    Log Out
+                </button>
 
-                    {{ __('Log Out') }}
-
-                </x-dropdown-link>
             </form>
 
-        </x-slot>
+        @else
 
-    </x-dropdown>
+            <a href="{{ route('login') }}">
+                Login
+            </a>
 
-</div>
+            <a href="{{ route('register') }}">
+                Register
+            </a>
 
-@endauth
+        @endauth
 
-            <!-- Hamburger -->
-            <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-        </div>
     </div>
 
-    <!-- Responsive Navigation Menu -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
-        <div class="pt-2 pb-3 space-y-1">
-         
-        </div>
-
-        <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-gray-200">
-            @auth
-    <div class="px-4">
-    <div class="font-medium text-base text-gray-800">
-        {{ Auth::user()->name }}
-    </div>
-
-    <div class="font-medium text-sm text-gray-500">
-        {{ Auth::user()->email }}
-    </div>
-    </div>
-@endauth
-
-            <div class="mt-3 space-y-1">
-                {{-- Profile link removed temporarily --}}
-
-                <!-- Authentication -->
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-
-                    <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault();
-                                        this.closest('form').submit();">
-                        {{ __('Log Out') }}
-                    </x-responsive-nav-link>
-                </form>
-            </div>
-        </div>
-    </div>
 </nav>
