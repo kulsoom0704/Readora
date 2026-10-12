@@ -13,6 +13,19 @@
 
 - Admins have additional permissions such as managing users, managing books and assigning admin rights.
 
+## How to Run the Project
+- Clone the repository
+- Open a terminal and run :  git clone https://github.com/kulsoom0704/Readora.git
+- cd Readora
+- Install dependencies : composer install
+- npm install
+- Configure the environment : Create your local environment   file:copy .env.example .env
+- Generate the application key : php artisan key:generate
+- Run the migrations and seeders : php artisan migrate --seed
+- Build frontend assets : npm run build
+- Run the application : Open the project through Laravel Herd, or - - use Laravel's development server : php artisan serve
+
+
 ## Functionalities
 Authentication System
 
@@ -139,13 +152,6 @@ Admin routes are protected with middleware to prevent normal users from accessin
 - Middleware authorization
 - CSRF protection
 - Form validation
-
-## How to Run the Project
-- Requirements
-- PHP installed
-- Composer installed
-- Laravel Herd or XAMPP
-- MySQL database
 
 ## Challenges Faced
 -During development, some challenges included:
