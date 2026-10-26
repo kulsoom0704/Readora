@@ -18,11 +18,38 @@ class BookController extends Controller
         return view('books.index', compact('books'));
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        $book = Book::findOrFail($id);
+        $book = Book::query()
+            ->with(['category', 'reviews.user'])
+            ->findOrFail($id);
 
-        return view('books.show', compact('book'));
+        $reviewCount = $book->reviews->count();
+        $averageRating = $book->reviews->avg('score');
+        $averageRatingStars = $averageRating === null ? 0 : (int) round($averageRating);
+
+        $hasReviewed = false;
+        $canReview = false;
+
+        if ($request->user()) {
+            $hasReviewed = $request->user()->reviews()
+                ->where('book_id', $book->getKey())
+                ->exists();
+
+            $canReview = ! $hasReviewed && $request->user()->reservations()
+                ->where('book_id', $book->getKey())
+                ->where('status', 'purchased')
+                ->exists();
+        }
+
+        return view('books.show', compact(
+            'book',
+            'canReview',
+            'hasReviewed',
+            'reviewCount',
+            'averageRating',
+            'averageRatingStars'
+        ));
     }
 
     // Admin: show create form

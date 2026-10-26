@@ -137,6 +137,19 @@ test('an authenticated user sees only their reservations with book and reservati
         ->assertDontSee('Someone Elses Book');
 });
 
+test('a purchased reservation displays its purchased status in the users reservation list', function () {
+    $user = User::factory()->create();
+    $book = createBookForReservation(1);
+    $reservation = $user->reservations()->create(['book_id' => $book->id]);
+    $reservation->forceFill(['status' => 'purchased'])->save();
+
+    $this->actingAs($user)
+        ->get(route('reservations.index'))
+        ->assertOk()
+        ->assertSee('Purchased')
+        ->assertDontSee('Cancel Reservation');
+});
+
 test('a guest must sign in before viewing their reservations', function () {
     $this->get(route('reservations.index'))
         ->assertRedirect(route('login'));

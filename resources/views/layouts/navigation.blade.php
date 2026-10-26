@@ -35,6 +35,10 @@
                         Manage Books
                     </a>
 
+                    <a href="{{ route('admin.reservations.index') }}">
+                        Manage Reservations
+                    </a>
+
                 @endif
             @endauth
 
@@ -151,6 +155,10 @@
 
                 <a href="{{ route('admin.books.index') }}">
                     Manage Books
+                </a>
+
+                <a href="{{ route('admin.reservations.index') }}">
+                    Manage Reservations
                 </a>
 
             @endif

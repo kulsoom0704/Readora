@@ -53,6 +53,10 @@
                                 <span class="w-fit rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700">
                                     Cancelled
                                 </span>
+                            @elseif ($reservation->status === 'purchased')
+                                <span class="w-fit rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800">
+                                    Purchased
+                                </span>
                             @else
                                 <span class="w-fit rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800">
                                     Reserved

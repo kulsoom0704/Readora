@@ -5,6 +5,7 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\ReviewController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -15,6 +16,10 @@ Route::get('/books', [BookController::class, 'index'])
     ->name('books.index');
 
 Route::get('/books/{id}', [BookController::class, 'show']);
+
+Route::post('/books/{book}/reviews', [ReviewController::class, 'store'])
+    ->middleware('auth')
+    ->name('books.reviews.store');
 
 Route::middleware('auth')->group(function () {
     Route::get('/my-reservations', [ReservationController::class, 'index'])
@@ -41,6 +46,12 @@ Route::get('/contact', [ContactController::class, 'index']);
 Route::post('/contact', [ContactController::class, 'send']);
 
 Route::middleware(['admin'])->group(function () {
+
+    Route::get('/admin/reservations', [AdminController::class, 'reservationsIndex'])
+        ->name('admin.reservations.index');
+
+    Route::patch('/admin/reservations/{reservation}/purchase', [AdminController::class, 'markReservationAsPurchased'])
+        ->name('admin.reservations.purchase');
 
     Route::get('/admin/users', [AdminController::class, 'index']);
 

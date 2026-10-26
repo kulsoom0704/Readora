@@ -79,6 +79,104 @@
     </div>
 </article>
 
+<section class="mx-auto mt-8 max-w-5xl rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200 sm:p-8">
+    <header class="mb-6">
+        <h2 class="text-2xl font-bold tracking-tight text-gray-900">Reviews</h2>
+    </header>
+
+    @if (session('review_success'))
+        <p class="mb-4 rounded-lg bg-green-100 p-3 text-green-800">{{ session('review_success') }}</p>
+    @endif
+
+    @if ($reviewCount === 0)
+        <p class="text-gray-600">No reviews yet.</p>
+    @else
+        <div class="mb-6 flex flex-wrap items-center gap-2" aria-label="Average rating {{ number_format($averageRating, 1) }} out of 5 from {{ $reviewCount }} reviews">
+            <span class="text-xl tracking-widest text-amber-500" aria-hidden="true">{{ str_repeat('★', $averageRatingStars).str_repeat('☆', 5 - $averageRatingStars) }}</span>
+            <span class="font-semibold text-gray-900">{{ number_format($averageRating, 1) }}/5</span>
+            <span class="text-gray-600">({{ $reviewCount }} {{ $reviewCount === 1 ? 'review' : 'reviews' }})</span>
+        </div>
+
+        <div class="flex flex-col gap-4">
+            @foreach ($book->reviews as $review)
+                <article class="rounded-xl bg-gray-50 p-4">
+                    <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                        <p class="font-semibold text-gray-900">{{ $review->user->name }}</p>
+                        <span class="text-lg tracking-widest text-amber-500" aria-label="{{ $review->score }} out of 5 stars">
+                            {{ str_repeat('★', (int) $review->score).str_repeat('☆', 5 - (int) $review->score) }}
+                        </span>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">{{ $review->created_at->format('F j, Y') }}</p>
+                    <p class="mt-3 whitespace-pre-line leading-7 text-gray-700">{{ $review->body }}</p>
+                </article>
+            @endforeach
+        </div>
+    @endif
+
+    @if ($canReview)
+        <form action="{{ route('books.reviews.store', $book) }}" method="POST" class="mt-6 flex flex-col gap-4 border-t border-gray-200 pt-6">
+            @csrf
+            <h3 class="text-lg font-semibold text-gray-900">Write a review</h3>
+
+            @error('book_id')
+                <p class="rounded-lg bg-red-100 p-3 text-red-800">{{ $message }}</p>
+            @enderror
+
+            <fieldset class="flex flex-col gap-2">
+                <legend class="text-sm font-medium text-gray-700">Choose a score from 1 to 5 stars</legend>
+                <div x-data="{ rating: @js((int) old('score', 0)) }" class="flex items-center gap-1" role="radiogroup" aria-label="Rating from 1 to 5 stars">
+                    @foreach (range(1, 5) as $score)
+                        <input
+                            id="score-{{ $score }}"
+                            type="radio"
+                            name="score"
+                            value="{{ $score }}"
+                            class="peer sr-only"
+                            x-model.number="rating"
+                            required
+                            {{ (string) old('score') === (string) $score ? 'checked' : '' }}
+                        >
+                        <label
+                            for="score-{{ $score }}"
+                            class="inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-md text-3xl leading-none transition-colors peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-indigo-600"
+                            :class="rating >= {{ $score }} ? 'text-amber-500' : 'text-gray-300'"
+                            x-on:click="rating = {{ $score }}"
+                            title="{{ $score }} {{ $score === 1 ? 'star' : 'stars' }}"
+                        >
+                            <span aria-hidden="true">★</span>
+                            <span class="sr-only">{{ $score }} {{ $score === 1 ? 'star' : 'stars' }}</span>
+                        </label>
+                    @endforeach
+                </div>
+                @error('score')
+                    <p class="text-sm text-red-700">{{ $message }}</p>
+                @enderror
+            </fieldset>
+
+            <div class="flex flex-col gap-2">
+                <label for="body" class="text-sm font-medium text-gray-700">Your review</label>
+                <textarea id="body" name="body" rows="4" maxlength="5000" required class="rounded-lg border-gray-300 text-gray-900 focus:border-indigo-500 focus:ring-indigo-500">{{ old('body') }}</textarea>
+                @error('body')
+                    <p class="text-sm text-red-700">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <button type="submit" class="w-fit rounded-lg bg-indigo-800 px-4 py-2 font-semibold text-gray-900 hover:bg-indigo-900">
+                Submit review
+            </button>
+        </form>
+    @elseif (auth()->check() && $hasReviewed)
+        <p class="mt-6 border-t border-gray-200 pt-6 text-gray-600">You have already reviewed this book.</p>
+    @elseif (auth()->check())
+        <p class="mt-6 border-t border-gray-200 pt-6 text-gray-600">You can review this book after your purchase is completed.</p>
+    @else
+        <p class="mt-6 border-t border-gray-200 pt-6 text-gray-600">
+            Log in to write a review after purchasing this book.
+            <a href="{{ route('login') }}" class="font-semibold text-indigo-700 hover:underline">Log in</a>
+        </p>
+    @endif
+</section>
+
 @endsection
 
 {{-- @extends('layouts.app')
