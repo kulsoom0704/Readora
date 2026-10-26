@@ -19,6 +19,12 @@
             <a href="/contact">Contact</a>
 
             @auth
+                <a href="{{ route('reservations.index') }}">
+                    My Reservations
+                </a>
+            @endauth
+
+            @auth
                 @if(Auth::user()->is_admin)
 
                     <a href="/admin/users">
@@ -132,6 +138,10 @@
         <a href="/contact">Contact</a>
 
         @auth
+
+            <a href="{{ route('reservations.index') }}">
+                My Reservations
+            </a>
 
             @if(Auth::user()->is_admin)
 

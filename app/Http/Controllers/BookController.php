@@ -42,6 +42,7 @@ class BookController extends Controller
             'description' => 'required|string',
             'isbn' => ['required', 'string', 'max:20', 'unique:books,isbn'],
             'price' => ['required', 'numeric', 'min:0', 'decimal:0,2'],
+            'stock' => ['required', 'integer', 'min:0'],
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'category_id' => 'required|exists:categories,id',
         ]);
@@ -74,6 +75,7 @@ class BookController extends Controller
             'description' => 'required|string',
             'isbn' => ['required', 'string', 'max:20', Rule::unique('books', 'isbn')->ignore($book)],
             'price' => ['required', 'numeric', 'min:0', 'decimal:0,2'],
+            'stock' => ['nullable', 'integer', 'min:0'],
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'category_id' => 'required|exists:categories,id',
         ]);

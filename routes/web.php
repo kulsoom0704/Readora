@@ -1,10 +1,11 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\ReservationController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('home.index');
@@ -13,6 +14,20 @@ Route::get('/', function () {
 Route::get('/books', [BookController::class, 'index']);
 
 Route::get('/books/{id}', [BookController::class, 'show']);
+
+Route::middleware('auth')->group(function () {
+    Route::get('/my-reservations', [ReservationController::class, 'index'])
+        ->name('reservations.index');
+
+    Route::delete('/my-reservations/{reservation}', [ReservationController::class, 'cancel'])
+        ->name('reservations.cancel');
+
+    Route::post('/books/{book}/reservations', [ReservationController::class, 'store'])
+        ->name('books.reservations.store');
+
+    Route::get('/reservations/{reservation}/confirmation', [ReservationController::class, 'show'])
+        ->name('reservations.confirmation');
+});
 
 Route::get('/categories', [CategoryController::class, 'index']);
 

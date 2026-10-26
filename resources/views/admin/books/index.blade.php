@@ -43,6 +43,11 @@
                         </span>
                     </p>
 
+                    <p>
+                        <strong>Stock:</strong>
+                        {{ $book->stock === null ? 'Unknown' : $book->stock }}
+                    </p>
+
                     <p class="book-description">
                         {{ $book->description }}
                     </p>

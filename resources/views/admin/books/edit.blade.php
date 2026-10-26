@@ -80,6 +80,22 @@
             </div>
 
             <div class="form-group">
+                <label for="stock">Stock quantity</label>
+                <input
+                    type="number"
+                    id="stock"
+                    name="stock"
+                    value="{{ old('stock', $book->stock) }}"
+                    min="0"
+                    step="1"
+                >
+                <small>Leave blank if the current stock is unknown. Unknown stock cannot be reserved.</small>
+                @error('stock')
+                    <span class="error-message">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="form-group">
                 <label for="description">Description</label>
 
                 <textarea

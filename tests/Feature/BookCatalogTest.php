@@ -21,6 +21,7 @@ test('admin can create a book with an ISBN and a two-decimal price', function ()
         'description' => 'A useful description.',
         'isbn' => '0001234567890',
         'price' => '19.95',
+        'stock' => '4',
         'category_id' => $category->id,
     ]);
 
@@ -50,6 +51,7 @@ test('admin cannot create a book with an ISBN already in use', function () {
         'description' => 'Another description.',
         'isbn' => '0001234567890',
         'price' => '12.50',
+        'stock' => '3',
         'category_id' => $category->id,
     ]);
 
@@ -66,10 +68,28 @@ test('admin cannot set a negative book price', function () {
         'description' => 'A useful description.',
         'isbn' => '0001234567890',
         'price' => '-0.01',
+        'stock' => '2',
         'category_id' => $category->id,
     ]);
 
     $response->assertSessionHasErrors('price');
+    expect(Book::query()->count())->toBe(0);
+});
+
+test('admin cannot set a negative book stock quantity', function () {
+    [$admin, $category] = createAdminUserAndCategory();
+
+    $response = $this->actingAs($admin)->post(route('admin.books.store'), [
+        'title' => 'A Useful Book',
+        'author' => 'A. Writer',
+        'description' => 'A useful description.',
+        'isbn' => '0001234567890',
+        'price' => '19.95',
+        'stock' => '-1',
+        'category_id' => $category->id,
+    ]);
+
+    $response->assertSessionHasErrors('stock');
     expect(Book::query()->count())->toBe(0);
 });
 
@@ -91,6 +111,7 @@ test('admin can update a book without changing its ISBN', function () {
         'description' => 'An updated description.',
         'isbn' => '0001234567890',
         'price' => '23.50',
+        'stock' => '4',
         'category_id' => $category->id,
     ]);
 

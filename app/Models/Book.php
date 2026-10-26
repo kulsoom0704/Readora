@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Book extends Model
 {
@@ -12,6 +14,7 @@ class Book extends Model
         'description',
         'isbn',
         'price',
+        'stock',
         'image',
         'category_id',
     ];
@@ -20,11 +23,17 @@ class Book extends Model
     {
         return [
             'price' => 'decimal:2',
+            'stock' => 'integer',
         ];
     }
 
-    public function category()
+    public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function reservations(): HasMany
+    {
+        return $this->hasMany(Reservation::class);
     }
 }

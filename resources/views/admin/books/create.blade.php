@@ -71,6 +71,22 @@
             </div>
 
             <div class="form-group">
+                <label for="stock">Stock quantity</label>
+                <input
+                    type="number"
+                    id="stock"
+                    name="stock"
+                    value="{{ old('stock') }}"
+                    min="0"
+                    step="1"
+                    required
+                >
+                @error('stock')
+                    <span class="error-message">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="form-group">
                 <label for="description">Description</label>
                 <textarea
                     id="description"
