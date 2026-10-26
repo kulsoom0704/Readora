@@ -13,6 +13,20 @@
         <h1>{{ $book->title }}</h1>
 
         <p>
+            <strong>ISBN:</strong>
+            {{ $book->isbn ?? 'Not set' }}
+        </p>
+
+        <p>
+            <strong>Price:</strong>
+            @if ($book->price !== null)
+                €{{ number_format((float) $book->price, 2) }}
+            @else
+                Not set
+            @endif
+        </p>
+
+        <p>
             <strong>Author:</strong>
             {{ $book->author }}
         </p>

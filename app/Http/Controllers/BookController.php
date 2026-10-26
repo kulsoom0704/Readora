@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Book;
 use App\Models\Category;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class BookController extends Controller
 {
@@ -16,12 +17,14 @@ class BookController extends Controller
 
         return view('books.index', compact('books'));
     }
-     public function show($id)
+
+    public function show($id)
     {
         $book = Book::findOrFail($id);
 
         return view('books.show', compact('book'));
     }
+
     // Admin: show create form
     public function create()
     {
@@ -32,25 +35,27 @@ class BookController extends Controller
 
     // Admin: save new book
     public function store(Request $request)
-{
-    $validated = $request->validate([
-        'title' => 'required|string|max:255',
-        'author' => 'required|string|max:255',
-        'description' => 'required|string',
-        'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-        'category_id' => 'required|exists:categories,id',
-    ]);
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|min:5',
+            'author' => 'required|string|max:255',
+            'description' => 'required|string',
+            'isbn' => ['required', 'string', 'max:20', 'unique:books,isbn'],
+            'price' => ['required', 'numeric', 'min:0', 'decimal:0,2'],
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'category_id' => 'required|exists:categories,id',
+        ]);
 
-    if ($request->hasFile('image')) {
-        $path = $request->file('image')->store('books', 'public');
-        $validated['image'] = 'storage/' . $path;
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('books', 'public');
+            $validated['image'] = 'storage/'.$path;
+        }
+
+        Book::create($validated);
+
+        return redirect('/admin/books')
+            ->with('success', 'Book added successfully.');
     }
-
-    Book::create($validated);
-
-    return redirect('/admin/books')
-        ->with('success', 'Book added successfully.');
-}
 
     // Admin: show edit form
     public function edit(Book $book)
@@ -62,40 +67,42 @@ class BookController extends Controller
 
     // Admin: update book
     public function update(Request $request, Book $book)
-{
-    $validated = $request->validate([
-        'title' => 'required|string|max:255',
-        'author' => 'required|string|max:255',
-        'description' => 'required|string',
-        'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-        'category_id' => 'required|exists:categories,id',
-    ]);
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|min:5',
+            'author' => 'required|string|max:255',
+            'description' => 'required|string',
+            'isbn' => ['required', 'string', 'max:20', Rule::unique('books', 'isbn')->ignore($book)],
+            'price' => ['required', 'numeric', 'min:0', 'decimal:0,2'],
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'category_id' => 'required|exists:categories,id',
+        ]);
 
-    if ($request->hasFile('image')) {
+        if ($request->hasFile('image')) {
 
-        // Delete the old uploaded image if it was stored by Laravel
-        if (
-            $book->image &&
-            str_starts_with($book->image, 'storage/')
-        ) {
-            Storage::disk('public')->delete(
-                str_replace('storage/', '', $book->image)
-            );
+            // Delete the old uploaded image if it was stored by Laravel
+            if (
+                $book->image &&
+                str_starts_with($book->image, 'storage/')
+            ) {
+                Storage::disk('public')->delete(
+                    str_replace('storage/', '', $book->image)
+                );
+            }
+
+            $path = $request->file('image')->store('books', 'public');
+
+            $validated['image'] = 'storage/'.$path;
+        } else {
+            // Keep the existing image
+            unset($validated['image']);
         }
 
-        $path = $request->file('image')->store('books', 'public');
+        $book->update($validated);
 
-        $validated['image'] = 'storage/' . $path;
-    } else {
-        // Keep the existing image
-        unset($validated['image']);
+        return redirect('/admin/books')
+            ->with('success', 'Book updated successfully.');
     }
-
-    $book->update($validated);
-
-    return redirect('/admin/books')
-        ->with('success', 'Book updated successfully.');
-}
 
     // Admin: delete book
     public function destroy(Book $book)

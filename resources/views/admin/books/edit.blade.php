@@ -25,9 +25,14 @@
                     type="text"
                     id="title"
                     name="title"
-                    value="{{ $book->title }}"
+                    value="{{ old('title', $book->title) }}"
+
                     required
+                    {{-- @error('title') is-invalid @enderror --}}
                 >
+                @error('title')
+                    <span class="error-message">{{ $message }}</span>
+                @enderror
             </div>
 
             <div class="form-group">
@@ -37,9 +42,41 @@
                     type="text"
                     id="author"
                     name="author"
+
                     value="{{ $book->author }}"
                     required
                 >
+            </div>
+
+            <div class="form-group">
+                <label for="isbn">ISBN</label>
+                <input
+                    type="text"
+                    id="isbn"
+                    name="isbn"
+                    value="{{ old('isbn', $book->isbn) }}"
+                    maxlength="20"
+                    required
+                >
+                @error('isbn')
+                    <span class="error-message">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="price">Price (€)</label>
+                <input
+                    type="number"
+                    id="price"
+                    name="price"
+                    value="{{ old('price', $book->price) }}"
+                    min="0"
+                    step="0.01"
+                    required
+                >
+                @error('price')
+                    <span class="error-message">{{ $message }}</span>
+                @enderror
             </div>
 
             <div class="form-group">

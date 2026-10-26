@@ -10,9 +10,18 @@ class Book extends Model
         'title',
         'author',
         'description',
+        'isbn',
+        'price',
         'image',
         'category_id',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'price' => 'decimal:2',
+        ];
+    }
 
     public function category()
     {

@@ -20,8 +20,12 @@
                     id="title"
                     name="title"
                     placeholder="Enter book title"
+                    value="{{ old('title') }}"
                     required
                 >
+                @error('title')
+                    <span class="error-message">{{ $message }}</span>
+                @enderror
             </div>
 
             <div class="form-group">
@@ -33,6 +37,37 @@
                     placeholder="Enter author name"
                     required
                 >
+            </div>
+
+            <div class="form-group">
+                <label for="isbn">ISBN</label>
+                <input
+                    type="text"
+                    id="isbn"
+                    name="isbn"
+                    value="{{ old('isbn') }}"
+                    maxlength="20"
+                    required
+                >
+                @error('isbn')
+                    <span class="error-message">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="price">Price (€)</label>
+                <input
+                    type="number"
+                    id="price"
+                    name="price"
+                    value="{{ old('price') }}"
+                    min="0"
+                    step="0.01"
+                    required
+                >
+                @error('price')
+                    <span class="error-message">{{ $message }}</span>
+                @enderror
             </div>
 
             <div class="form-group">
