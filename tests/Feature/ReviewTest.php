@@ -2,10 +2,11 @@
 
 use App\Models\Book;
 use App\Models\Category;
-use App\Models\Reservation;
 use App\Models\Review;
 use App\Models\User;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\Client\Request as HttpRequest;
+use Illuminate\Support\Facades\Http;
 
 function createBookForReview(): Book
 {
@@ -22,18 +23,41 @@ function createBookForReview(): Book
     ]);
 }
 
-function createPurchasedReservation(User $user, Book $book): Reservation
+function fakeReviewEligibilityApi(array $records): void
 {
-    $reservation = $user->reservations()->create(['book_id' => $book->id]);
-    $reservation->forceFill(['status' => 'purchased'])->save();
+    Http::fake(function (HttpRequest $request) use ($records) {
+        $path = parse_url($request->url(), PHP_URL_PATH);
 
-    return $reservation;
+        if (is_string($path) && str_starts_with($path, '/api/v1/inventory/books/')) {
+            $bookId = (int) basename($path);
+
+            return Http::response([
+                'data' => ['book_id' => $bookId, 'stock' => null, 'available' => false],
+            ]);
+        }
+
+        if ($request->method() === 'GET' && $path === '/api/v1/reservations') {
+            return Http::response(reservationApiList($records));
+        }
+
+        return Http::response(['message' => 'Not found'], 404);
+    });
 }
+
+beforeEach(function () {
+    config([
+        'services.inventory_api.url' => 'http://inventory.test:8001',
+        'services.inventory_api.token' => 'test-service-token',
+        'services.inventory_api.identity_secret' => 'test-identity-secret',
+    ]);
+
+    Http::preventStrayRequests();
+});
 
 test('a user without a completed purchase cannot submit a review', function () {
     $user = User::factory()->create();
     $book = createBookForReview();
-    $user->reservations()->create(['book_id' => $book->id]);
+    fakeReviewEligibilityApi([]);
 
     $this->actingAs($user)
         ->get('/books/'.$book->id)
@@ -62,10 +86,10 @@ test('a guest cannot submit a review', function () {
     expect(Review::query()->count())->toBe(0);
 });
 
-test('a user with a purchased reservation can submit a score and written review', function () {
+test('a user with an API purchase can submit a score and written review', function () {
     $user = User::factory()->create();
     $book = createBookForReview();
-    createPurchasedReservation($user, $book);
+    fakeReviewEligibilityApi([reservationApiRecord(701, $user->id, $book->id, 'purchased')]);
 
     $this->actingAs($user)
         ->get('/books/'.$book->id)
@@ -98,7 +122,7 @@ test('a user with a purchased reservation can submit a score and written review'
 test('a user cannot submit a second review for the same book', function () {
     $user = User::factory()->create();
     $book = createBookForReview();
-    createPurchasedReservation($user, $book);
+    fakeReviewEligibilityApi([reservationApiRecord(702, $user->id, $book->id, 'purchased')]);
     Review::create([
         'user_id' => $user->id,
         'book_id' => $book->id,
@@ -139,7 +163,7 @@ test('the database also prevents duplicate reviews for a user and book', functio
 test('a review requires a score from one to five and written text', function () {
     $user = User::factory()->create();
     $book = createBookForReview();
-    createPurchasedReservation($user, $book);
+    fakeReviewEligibilityApi([reservationApiRecord(703, $user->id, $book->id, 'purchased')]);
 
     $this->actingAs($user)
         ->post(route('books.reviews.store', $book), [
@@ -154,6 +178,7 @@ test('a review requires a score from one to five and written text', function () 
 test('book details display existing reviews and hide the form after a review is submitted', function () {
     $user = User::factory()->create();
     $book = createBookForReview();
+    fakeReviewEligibilityApi([]);
     Review::create([
         'user_id' => $user->id,
         'book_id' => $book->id,
@@ -178,6 +203,7 @@ test('book details calculate the average rating and count across saved reviews',
     $firstReviewer = User::factory()->create();
     $secondReviewer = User::factory()->create();
     $book = createBookForReview();
+    fakeReviewEligibilityApi([]);
 
     Review::create([
         'user_id' => $firstReviewer->id,
@@ -198,4 +224,34 @@ test('book details calculate the average rating and count across saved reviews',
         ->assertSee('(2 reviews)')
         ->assertSee('★★★★☆')
         ->assertSee('★★★★★');
+});
+
+test('review eligibility fails safely when the Inventory API is unavailable', function () {
+    $user = User::factory()->create();
+    $book = createBookForReview();
+
+    Http::fake(function (HttpRequest $request) {
+        $path = parse_url($request->url(), PHP_URL_PATH);
+
+        if (is_string($path) && str_starts_with($path, '/api/v1/inventory/books/')) {
+            $bookId = (int) basename($path);
+
+            return Http::response(['data' => ['book_id' => $bookId, 'stock' => 0, 'available' => false]]);
+        }
+
+        return Http::response(['message' => 'Unavailable'], 503);
+    });
+
+    $this->actingAs($user)
+        ->get('/books/'.$book->id)
+        ->assertOk()
+        ->assertSee('Your purchase history could not be checked right now')
+        ->assertDontSee('Write a review');
+
+    $this->actingAs($user)
+        ->post(route('books.reviews.store', $book), ['score' => 5, 'body' => 'Review text'])
+        ->assertRedirect('/books/'.$book->id)
+        ->assertSessionHas('review_error');
+
+    expect(Review::query()->count())->toBe(0);
 });

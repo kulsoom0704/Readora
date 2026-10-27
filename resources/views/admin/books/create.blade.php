@@ -71,19 +71,8 @@
             </div>
 
             <div class="form-group">
-                <label for="stock">Stock quantity</label>
-                <input
-                    type="number"
-                    id="stock"
-                    name="stock"
-                    value="{{ old('stock') }}"
-                    min="0"
-                    step="1"
-                    required
-                >
-                @error('stock')
-                    <span class="error-message">{{ $message }}</span>
-                @enderror
+                <label>Stock</label>
+                <small>Stock is read from the Inventory API. New books remain unavailable until an API stock update is added.</small>
             </div>
 
             <div class="form-group">

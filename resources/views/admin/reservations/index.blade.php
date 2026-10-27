@@ -16,17 +16,32 @@
         <p class="mb-4 rounded-lg bg-gray-100 p-3 text-gray-800">{{ session('info') }}</p>
     @endif
 
+    @if (session('error') || $reservationError)
+        <p role="alert" class="mb-4 rounded-lg bg-red-100 p-3 text-red-800">
+            {{ session('error') ?? $reservationError }}
+        </p>
+    @endif
+
     @if ($reservations->isEmpty())
         <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200">
-            <p class="text-gray-700">There are no reservations yet.</p>
+            <p class="text-gray-700">
+                {{ $reservationError ? 'Reservation data is unavailable.' : 'There are no reservations yet.' }}
+            </p>
         </section>
     @else
         <div class="flex flex-col gap-4">
             @foreach ($reservations as $reservation)
                 <article class="flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-900">{{ $reservation->book->title }}</h2>
-                        <p class="mt-1 text-sm text-gray-600">Customer: {{ $reservation->user->name }} ({{ $reservation->user->email }})</p>
+                        <h2 class="text-lg font-semibold text-gray-900">{{ $reservation->book?->title ?? 'Book no longer in catalogue' }}</h2>
+                        <p class="mt-1 text-sm text-gray-600">
+                            Customer:
+                            @if ($reservation->user)
+                                {{ $reservation->user->name }} ({{ $reservation->user->email }})
+                            @else
+                                User #{{ $reservation->user_id }} (account unavailable)
+                            @endif
+                        </p>
                         <p class="mt-1 text-sm text-gray-600">Reservation #{{ $reservation->id }} · {{ $reservation->created_at->format('F j, Y') }}</p>
                     </div>
 
@@ -37,7 +52,7 @@
                             <span class="rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700">Cancelled</span>
                         @else
                             <span class="rounded-full bg-indigo-100 px-3 py-1 text-sm font-medium text-indigo-800">Active</span>
-                            <form action="{{ route('admin.reservations.purchase', $reservation) }}" method="POST">
+                            <form action="{{ route('admin.reservations.purchase', $reservation->id) }}" method="POST">
                                 @csrf
                                 @method('PATCH')
                                 <button type="submit" class="rounded-lg bg-indigo-800 px-4 py-2 font-semibold text-gray-900 hover:bg-indigo-900">

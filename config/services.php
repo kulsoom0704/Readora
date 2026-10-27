@@ -2,6 +2,12 @@
 
 return [
 
+    'inventory_api' => [
+        'url' => env('INVENTORY_API_URL', 'http://127.0.0.1:8001'),
+        'token' => env('INVENTORY_API_TOKEN'),
+        'identity_secret' => env('INVENTORY_IDENTITY_SECRET'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Third Party Services

@@ -4,8 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Book;
 use App\Models\Category;
+use App\Services\InventoryApiException;
+use App\Services\InventoryReadService;
+use App\Services\InventoryReservationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class BookController extends Controller
@@ -18,37 +22,68 @@ class BookController extends Controller
         return view('books.index', compact('books'));
     }
 
-    public function show(Request $request, $id)
-    {
+    public function show(
+        Request $request,
+        InventoryReadService $inventoryReader,
+        InventoryReservationService $reservationReader,
+        int $id,
+    ) {
         $book = Book::query()
             ->with(['category', 'reviews.user'])
             ->findOrFail($id);
+        $inventory = $inventoryReader->forBook((int) $book->getKey());
 
         $reviewCount = $book->reviews->count();
         $averageRating = $book->reviews->avg('score');
         $averageRatingStars = $averageRating === null ? 0 : (int) round($averageRating);
+        $reservationIdempotencyKey = null;
+
+        if ($request->user() !== null) {
+            $idempotencySessionKey = 'inventory_reservation_keys.'.$request->user()->getAuthIdentifier().'.'.$book->getKey();
+            $isRetryingReservation = (int) $request->session()->get('reservation_retry_book') === (int) $book->getKey()
+                && (int) $request->session()->get('reservation_retry_user') === (int) $request->user()->getAuthIdentifier();
+            $reservationIdempotencyKey = $isRetryingReservation
+                ? $request->session()->get($idempotencySessionKey)
+                : (string) Str::uuid();
+
+            if (is_string($reservationIdempotencyKey) && $reservationIdempotencyKey !== '') {
+                $request->session()->put($idempotencySessionKey, $reservationIdempotencyKey);
+            } else {
+                $reservationIdempotencyKey = (string) Str::uuid();
+                $request->session()->put($idempotencySessionKey, $reservationIdempotencyKey);
+            }
+        }
 
         $hasReviewed = false;
         $canReview = false;
+        $reviewEligibilityAvailable = true;
 
         if ($request->user()) {
             $hasReviewed = $request->user()->reviews()
                 ->where('book_id', $book->getKey())
                 ->exists();
 
-            $canReview = ! $hasReviewed && $request->user()->reservations()
-                ->where('book_id', $book->getKey())
-                ->where('status', 'purchased')
-                ->exists();
+            if (! $hasReviewed) {
+                try {
+                    $canReview = $reservationReader->userHasPurchasedBook(
+                        $request->user(),
+                        (int) $book->getKey(),
+                    );
+                } catch (InventoryApiException) {
+                    $reviewEligibilityAvailable = false;
+                }
+            }
         }
 
         return view('books.show', compact(
             'book',
             'canReview',
             'hasReviewed',
+            'reviewEligibilityAvailable',
             'reviewCount',
             'averageRating',
-            'averageRatingStars'
+            'averageRatingStars',
+            'inventory', 'reservationIdempotencyKey'
         ));
     }
 
@@ -69,7 +104,7 @@ class BookController extends Controller
             'description' => 'required|string',
             'isbn' => ['required', 'string', 'max:20', 'unique:books,isbn'],
             'price' => ['required', 'numeric', 'min:0', 'decimal:0,2'],
-            'stock' => ['required', 'integer', 'min:0'],
+            'stock' => ['prohibited'],
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'category_id' => 'required|exists:categories,id',
         ]);
@@ -86,11 +121,12 @@ class BookController extends Controller
     }
 
     // Admin: show edit form
-    public function edit(Book $book)
+    public function edit(Book $book, InventoryReadService $inventoryReader)
     {
         $categories = Category::all();
+        $inventory = $inventoryReader->forBook((int) $book->getKey());
 
-        return view('admin.books.edit', compact('book', 'categories'));
+        return view('admin.books.edit', compact('book', 'categories', 'inventory'));
     }
 
     // Admin: update book
@@ -102,7 +138,7 @@ class BookController extends Controller
             'description' => 'required|string',
             'isbn' => ['required', 'string', 'max:20', Rule::unique('books', 'isbn')->ignore($book)],
             'price' => ['required', 'numeric', 'min:0', 'decimal:0,2'],
-            'stock' => ['nullable', 'integer', 'min:0'],
+            'stock' => ['prohibited'],
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'category_id' => 'required|exists:categories,id',
         ]);
@@ -143,10 +179,11 @@ class BookController extends Controller
     }
 
     // Admin: list books
-    public function adminIndex()
+    public function adminIndex(InventoryReadService $inventoryReader)
     {
         $books = Book::with('category')->get();
+        $inventoryByBookId = $inventoryReader->forBooks($books);
 
-        return view('admin.books.index', compact('books'));
+        return view('admin.books.index', compact('books', 'inventoryByBookId'));
     }
 }

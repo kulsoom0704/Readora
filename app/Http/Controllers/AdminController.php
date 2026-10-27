@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Reservation;
 use App\Models\User;
+use App\Services\InventoryApiException;
+use App\Services\InventoryReservationService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class AdminController extends Controller
@@ -38,32 +40,43 @@ class AdminController extends Controller
         return redirect('/admin/users');
     }
 
-    public function reservationsIndex(): View
+    public function reservationsIndex(Request $request, InventoryReservationService $reservationService): View
     {
-        $reservations = Reservation::query()
-            ->with(['user', 'book'])
-            ->latest()
-            ->get();
+        $reservationError = null;
 
-        return view('admin.reservations.index', compact('reservations'));
+        try {
+            $reservations = $reservationService->forAdmin($request->user());
+        } catch (InventoryApiException) {
+            $reservations = collect();
+            $reservationError = 'Reservations could not be loaded from the Inventory API. Please try again later.';
+        }
+
+        return view('admin.reservations.index', compact('reservations', 'reservationError'));
     }
 
-    public function markReservationAsPurchased(Reservation $reservation): RedirectResponse
-    {
-        $updatedReservations = Reservation::query()
-            ->whereKey($reservation->getKey())
-            ->where('status', 'active')
-            ->update([
-                'status' => 'purchased',
-                'updated_at' => now(),
-            ]);
+    public function markReservationAsPurchased(
+        Request $request,
+        int $reservationId,
+        InventoryReservationService $reservationService,
+    ): RedirectResponse {
+        try {
+            $reservationService->purchase($request->user(), $reservationId);
+        } catch (InventoryApiException $exception) {
+            if ($exception->statusCode === 409) {
+                return redirect()->route('admin.reservations.index')
+                    ->with('info', 'Only active reservations can be marked as purchased.');
+            }
 
-        if ($updatedReservations === 1) {
+            if ($exception->statusCode === 404) {
+                return redirect()->route('admin.reservations.index')
+                    ->with('info', 'That reservation was not found in the Inventory API.');
+            }
+
             return redirect()->route('admin.reservations.index')
-                ->with('success', 'Reservation marked as purchased. Stock was not changed.');
+                ->with('error', 'The Inventory API did not confirm the purchase update. Please try again later.');
         }
 
         return redirect()->route('admin.reservations.index')
-            ->with('info', 'Only active reservations can be marked as purchased.');
+            ->with('success', 'Reservation marked as purchased. Stock was not changed.');
     }
 }

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Book;
 use App\Models\Review;
+use App\Services\InventoryApiException;
+use App\Services\InventoryReservationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -11,14 +13,16 @@ use Illuminate\Validation\Rule;
 
 class ReviewController extends Controller
 {
-    public function store(Request $request, Book $book): RedirectResponse
+    public function store(Request $request, Book $book, InventoryReservationService $reservationReader): RedirectResponse
     {
         $user = $request->user();
 
-        $hasPurchasedBook = $user->reservations()
-            ->where('book_id', $book->getKey())
-            ->where('status', 'purchased')
-            ->exists();
+        try {
+            $hasPurchasedBook = $reservationReader->userHasPurchasedBook($user, (int) $book->getKey());
+        } catch (InventoryApiException) {
+            return redirect('/books/'.$book->getKey())
+                ->with('review_error', 'Purchase history could not be checked. Please try submitting your review later.');
+        }
 
         abort_unless($hasPurchasedBook, 403);
 

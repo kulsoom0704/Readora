@@ -1,6 +1,11 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Support\Facades\Http;
+
+beforeEach(function () {
+    Http::preventStrayRequests();
+});
 
 test('profile page is displayed', function () {
     $user = User::factory()->create();
@@ -9,7 +14,19 @@ test('profile page is displayed', function () {
         ->actingAs($user)
         ->get('/profile');
 
-    $response->assertOk();
+    $response->assertOk()
+        ->assertDontSee('Purchased books');
+});
+
+test('profile page does not load reservation data', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get(route('profile.edit'))
+        ->assertOk()
+        ->assertDontSee('Purchased books');
+
+    Http::assertNothingSent();
 });
 
 test('profile information can be updated', function () {

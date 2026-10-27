@@ -3,6 +3,7 @@
 use App\Models\Book;
 use App\Models\Category;
 use App\Models\User;
+use Illuminate\Support\Facades\Http;
 
 function createAdminUserAndCategory(): array
 {
@@ -21,7 +22,6 @@ test('admin can create a book with an ISBN and a two-decimal price', function ()
         'description' => 'A useful description.',
         'isbn' => '0001234567890',
         'price' => '19.95',
-        'stock' => '4',
         'category_id' => $category->id,
     ]);
 
@@ -30,7 +30,8 @@ test('admin can create a book with an ISBN and a two-decimal price', function ()
     $book = Book::query()->where('isbn', '0001234567890')->firstOrFail();
 
     expect($book->isbn)->toBe('0001234567890')
-        ->and($book->price)->toBe('19.95');
+        ->and($book->price)->toBe('19.95')
+        ->and($book->stock)->toBeNull();
 });
 
 test('admin cannot create a book with an ISBN already in use', function () {
@@ -51,7 +52,6 @@ test('admin cannot create a book with an ISBN already in use', function () {
         'description' => 'Another description.',
         'isbn' => '0001234567890',
         'price' => '12.50',
-        'stock' => '3',
         'category_id' => $category->id,
     ]);
 
@@ -68,7 +68,6 @@ test('admin cannot set a negative book price', function () {
         'description' => 'A useful description.',
         'isbn' => '0001234567890',
         'price' => '-0.01',
-        'stock' => '2',
         'category_id' => $category->id,
     ]);
 
@@ -76,7 +75,7 @@ test('admin cannot set a negative book price', function () {
     expect(Book::query()->count())->toBe(0);
 });
 
-test('admin cannot set a negative book stock quantity', function () {
+test('admin cannot submit local stock when creating a book', function () {
     [$admin, $category] = createAdminUserAndCategory();
 
     $response = $this->actingAs($admin)->post(route('admin.books.store'), [
@@ -85,7 +84,7 @@ test('admin cannot set a negative book stock quantity', function () {
         'description' => 'A useful description.',
         'isbn' => '0001234567890',
         'price' => '19.95',
-        'stock' => '-1',
+        'stock' => '4',
         'category_id' => $category->id,
     ]);
 
@@ -111,13 +110,39 @@ test('admin can update a book without changing its ISBN', function () {
         'description' => 'An updated description.',
         'isbn' => '0001234567890',
         'price' => '23.50',
-        'stock' => '4',
         'category_id' => $category->id,
     ]);
 
     $response->assertSessionHasNoErrors()->assertRedirect('/admin/books');
     expect($book->fresh()->isbn)->toBe('0001234567890')
         ->and($book->fresh()->price)->toBe('23.50');
+});
+
+test('admin cannot update the legacy local stock value through the book form', function () {
+    [$admin, $category] = createAdminUserAndCategory();
+
+    $book = Book::create([
+        'title' => 'Existing Book',
+        'author' => 'A. Writer',
+        'description' => 'An existing book.',
+        'isbn' => '0001234567890',
+        'price' => '10.00',
+        'stock' => 7,
+        'category_id' => $category->id,
+    ]);
+
+    $response = $this->actingAs($admin)->put(route('admin.books.update', $book), [
+        'title' => 'Existing Book Updated',
+        'author' => 'A. Writer',
+        'description' => 'An updated description.',
+        'isbn' => '0001234567890',
+        'price' => '23.50',
+        'stock' => '1',
+        'category_id' => $category->id,
+    ]);
+
+    $response->assertSessionHasErrors('stock');
+    expect($book->fresh()->stock)->toBe(7);
 });
 
 test('book detail displays its ISBN and price', function () {
@@ -130,6 +155,17 @@ test('book detail displays its ISBN and price', function () {
         'isbn' => '0001234567890',
         'price' => '19.95',
         'category_id' => $category->id,
+    ]);
+
+    config([
+        'services.inventory_api.url' => 'http://inventory.test:8001',
+        'services.inventory_api.token' => 'test-service-token',
+    ]);
+
+    Http::fake([
+        'http://inventory.test:8001/api/v1/inventory/books/'.$book->id => Http::response([
+            'data' => ['book_id' => $book->id, 'stock' => null, 'available' => false],
+        ]),
     ]);
 
     $this->get('/books/'.$book->id)

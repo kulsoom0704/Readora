@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminInventoryController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ContactController;
@@ -25,13 +26,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-reservations', [ReservationController::class, 'index'])
         ->name('reservations.index');
 
-    Route::delete('/my-reservations/{reservation}', [ReservationController::class, 'cancel'])
+    Route::delete('/my-reservations/{reservationId}', [ReservationController::class, 'cancel'])
         ->name('reservations.cancel');
 
     Route::post('/books/{book}/reservations', [ReservationController::class, 'store'])
         ->name('books.reservations.store');
 
-    Route::get('/reservations/{reservation}/confirmation', [ReservationController::class, 'show'])
+    Route::get('/reservations/{reservationId}/confirmation', [ReservationController::class, 'show'])
         ->name('reservations.confirmation');
 });
 
@@ -50,10 +51,11 @@ Route::middleware(['admin'])->group(function () {
     Route::get('/admin/reservations', [AdminController::class, 'reservationsIndex'])
         ->name('admin.reservations.index');
 
-    Route::patch('/admin/reservations/{reservation}/purchase', [AdminController::class, 'markReservationAsPurchased'])
+    Route::patch('/admin/reservations/{reservationId}/purchase', [AdminController::class, 'markReservationAsPurchased'])
         ->name('admin.reservations.purchase');
 
-    Route::get('/admin/users', [AdminController::class, 'index']);
+    Route::get('/admin/users', [AdminController::class, 'index'])
+        ->name('admin.users.index');
 
     Route::get('/admin/make-admin/{id}', [AdminController::class, 'makeAdmin']);
 
@@ -61,6 +63,9 @@ Route::middleware(['admin'])->group(function () {
 
     Route::get('/admin/books', [BookController::class, 'adminIndex'])
         ->name('admin.books.index');
+
+    Route::put('/admin/books/{book}/inventory', [AdminInventoryController::class, 'update'])
+        ->name('admin.inventory.update');
 
     Route::get('/admin/books/create', [BookController::class, 'create'])
         ->name('admin.books.create');

@@ -16,36 +16,54 @@
         <p class="mb-4 rounded-lg bg-gray-100 p-3 text-gray-800">{{ session('info') }}</p>
     @endif
 
+    @if (session('error') || $reservationError)
+        <p role="alert" class="mb-4 rounded-lg bg-red-100 p-3 text-red-800">
+            {{ session('error') ?? $reservationError }}
+        </p>
+    @endif
+
     @if ($reservations->isEmpty())
         <section class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200 sm:p-8">
-            <p class="text-gray-700">You do not have any reservations yet.</p>
+            <p class="text-gray-700">
+                {{ $reservationError ? 'Your reservation history is unavailable.' : 'You do not have any reservations yet.' }}
+            </p>
             <a href="/books" class="mt-4 inline-flex font-semibold text-indigo-700 hover:underline">Browse books</a>
         </section>
     @else
         <div class="flex flex-col gap-4">
             @foreach ($reservations as $reservation)
                 <article class="flex flex-col gap-5 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200 sm:flex-row sm:items-start">
-                    <a href="{{ url('/books/'.$reservation->book_id) }}" class="shrink-0 self-center sm:self-start">
-                        @if ($reservation->book->image)
+                    @if ($reservation->book)
+                        <a href="{{ url('/books/'.$reservation->book_id) }}" class="shrink-0 self-center sm:self-start">
+                            @if ($reservation->book->image)
                             <img
                                 src="/{{ $reservation->book->image }}"
                                 alt="{{ $reservation->book->title }} cover"
                                 class="aspect-[2/3] w-28 rounded-lg object-cover shadow-sm ring-1 ring-black/5"
                             >
-                        @else
+                            @else
                             <div class="flex aspect-[2/3] w-28 items-center justify-center rounded-lg bg-gray-100 p-3 text-center text-sm text-gray-500">
                                 No cover available
                             </div>
-                        @endif
-                    </a>
+                            @endif
+                        </a>
+                    @else
+                        <div class="flex aspect-[2/3] w-28 shrink-0 items-center justify-center rounded-lg bg-gray-100 p-3 text-center text-sm text-gray-500">
+                            Book no longer in catalogue
+                        </div>
+                    @endif
 
                     <div class="min-w-0 flex-1">
                         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div>
                                 <h2 class="text-xl font-semibold text-gray-900">
-                                    <a href="{{ url('/books/'.$reservation->book_id) }}" class="hover:text-indigo-800">
+                                    @if ($reservation->book)
+                                        <a href="{{ url('/books/'.$reservation->book_id) }}" class="hover:text-indigo-800">
                                         {{ $reservation->book->title }}
-                                    </a>
+                                        </a>
+                                    @else
+                                        Book no longer in catalogue
+                                    @endif
                                 </h2>
                                 <p class="mt-1 text-sm text-gray-600">Reservation #{{ $reservation->id }}</p>
                             </div>
@@ -67,11 +85,11 @@
                         <p class="mt-4 text-sm text-gray-600">
                             Reserved on {{ $reservation->created_at->format('F j, Y') }}
                         </p>
-                        <a href="{{ route('reservations.confirmation', $reservation) }}" class="mt-3 inline-flex font-semibold text-indigo-700 hover:underline">
+                        <a href="{{ route('reservations.confirmation', $reservation->id) }}" class="mt-3 inline-flex font-semibold text-indigo-700 hover:underline">
                             View confirmation
                         </a>
                         @if ($reservation->status === 'active')
-                            <form action="{{ route('reservations.cancel', $reservation) }}" method="POST" class="mt-3">
+                            <form action="{{ route('reservations.cancel', $reservation->id) }}" method="POST" class="mt-3">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="rounded-lg bg-red-700 px-4 py-2 font-semibold text-gray-900 hover:bg-red-800">

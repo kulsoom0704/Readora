@@ -50,17 +50,21 @@
 
             <section class="rounded-xl bg-gray-50 p-4">
                 <h2 class="text-lg font-semibold text-gray-900">Reserve this book</h2>
-                @if ($book->stock === null)
-                    <p class="mt-2 text-gray-600">Stock is not set, so this book cannot currently be reserved.</p>
-                @elseif ($book->stock < 1)
-                    <p class="mt-2 text-gray-600">This book is currently out of stock.</p>
-                @else
-                    <p class="mt-2 text-gray-600">{{ $book->stock }} available</p>
+                @if (session('reservation_error'))
+                    <p role="alert" class="mt-2 rounded-lg bg-red-100 p-3 text-red-800">{{ session('reservation_error') }}</p>
+                @endif
+                @if ($inventory['state'] === 'available' || ((int) session('reservation_retry_book') === (int) $book->getKey() && (int) session('reservation_retry_user') === (int) auth()->id()))
+                    @if ($inventory['state'] === 'available')
+                        <p class="mt-2 text-gray-600">{{ $inventory['stock'] }} available</p>
+                    @else
+                        <p class="mt-2 text-gray-600">Retry the previous request to safely confirm whether it completed.</p>
+                    @endif
                     @auth
                         <form action="{{ route('books.reservations.store', $book) }}" method="POST" class="mt-4">
                             @csrf
+                            <input type="hidden" name="idempotency_key" value="{{ $reservationIdempotencyKey }}">
                             <button type="submit" class="rounded-lg bg-indigo-800 px-4 py-2 font-semibold text-gray-900 hover:bg-indigo-900 disabled:cursor-not-allowed disabled:bg-gray-700 disabled:text-gray-900 disabled:opacity-100">
-                                Reserve one copy
+                                {{ (int) session('reservation_retry_book') === (int) $book->getKey() && (int) session('reservation_retry_user') === (int) auth()->id() ? 'Retry reservation request' : 'Reserve one copy' }}
                             </button>
                         </form>
                     @else
@@ -70,6 +74,14 @@
                             <a href="{{ route('register') }}" class="font-semibold text-indigo-700 hover:underline">Register</a>
                         </div>
                     @endauth
+                @elseif ($inventory['state'] === 'out_of_stock')
+                    <p class="mt-2 text-gray-600">This book is currently out of stock.</p>
+                @elseif ($inventory['state'] === 'unknown')
+                    <p class="mt-2 text-gray-600">Stock is unknown, so this book cannot currently be reserved.</p>
+                @elseif ($inventory['state'] === 'missing')
+                    <p class="mt-2 text-gray-600">Stock has not been configured for this book, so it cannot currently be reserved.</p>
+                @else
+                    <p role="status" class="mt-2 text-red-700">Availability could not be checked right now. Please try again later.</p>
                 @endif
                 @error('reservation')
                     <p class="mt-3 text-sm font-medium text-red-700">{{ $message }}</p>
@@ -86,6 +98,10 @@
 
     @if (session('review_success'))
         <p class="mb-4 rounded-lg bg-green-100 p-3 text-green-800">{{ session('review_success') }}</p>
+    @endif
+
+    @if (session('review_error'))
+        <p role="alert" class="mb-4 rounded-lg bg-red-100 p-3 text-red-800">{{ session('review_error') }}</p>
     @endif
 
     @if ($reviewCount === 0)
@@ -168,7 +184,11 @@
     @elseif (auth()->check() && $hasReviewed)
         <p class="mt-6 border-t border-gray-200 pt-6 text-gray-600">You have already reviewed this book.</p>
     @elseif (auth()->check())
-        <p class="mt-6 border-t border-gray-200 pt-6 text-gray-600">You can review this book after your purchase is completed.</p>
+        @if (! $reviewEligibilityAvailable)
+            <p role="status" class="mt-6 border-t border-gray-200 pt-6 text-red-700">Your purchase history could not be checked right now. Review eligibility is unavailable until the Inventory API responds.</p>
+        @else
+            <p class="mt-6 border-t border-gray-200 pt-6 text-gray-600">You can review this book after your purchase is completed.</p>
+        @endif
     @else
         <p class="mt-6 border-t border-gray-200 pt-6 text-gray-600">
             Log in to write a review after purchasing this book.

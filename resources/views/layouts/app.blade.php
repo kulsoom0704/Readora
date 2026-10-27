@@ -307,6 +307,229 @@
     }
 
 }
+    [x-cloak] {
+        display: none !important;
+    }
+
+    .main-nav {
+        position: relative;
+        z-index: 40;
+    }
+
+    .nav-inner {
+        justify-content: space-between;
+        gap: 20px;
+    }
+
+    .desktop-nav {
+        flex: 1;
+        justify-content: center;
+        gap: clamp(12px, 1.4vw, 20px);
+        margin-left: clamp(18px, 2vw, 32px);
+    }
+
+    .desktop-nav > a,
+    .desktop-nav .account-nav-trigger {
+        font-size: 15px;
+        white-space: nowrap;
+    }
+
+    .desktop-auth {
+        gap: 18px;
+    }
+
+    .desktop-auth > a {
+        white-space: nowrap;
+    }
+
+    .user-button,
+    .account-nav-trigger,
+    .mobile-account-trigger {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        border: 0;
+        background: transparent;
+        color: #333;
+        font: inherit;
+        cursor: pointer;
+    }
+
+    .nav-chevron {
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
+        transition: transform 150ms ease;
+    }
+
+    .nav-chevron.is-open {
+        transform: rotate(180deg);
+    }
+
+    .account-dropdown {
+        position: relative;
+    }
+
+    .account-dropdown-menu {
+        position: absolute;
+        top: calc(100% + 12px);
+        right: 0;
+        z-index: 50;
+        width: 220px;
+        padding: 6px;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        background: white;
+        box-shadow: 0 10px 24px rgba(17, 24, 39, 0.14);
+    }
+
+    .account-dropdown-menu a,
+    .account-logout-form button {
+        display: block;
+        width: 100%;
+        padding: 10px 12px;
+        border: 0;
+        background: transparent;
+        border-radius: 6px;
+        color: #374151;
+        font-size: 14px;
+        text-align: left;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .account-dropdown-menu a:hover,
+    .account-dropdown-menu a:focus-visible,
+    .account-logout-form button:hover,
+    .account-logout-form button:focus-visible {
+        background: #f3f4f6;
+        color: #111827;
+        outline: none;
+    }
+
+    .mobile-menu-button {
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        color: #222;
+        cursor: pointer;
+    }
+
+    .mobile-menu-button svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    .mobile-nav {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        left: 0;
+        z-index: 50;
+        max-height: calc(100vh - 64px);
+        overflow-y: auto;
+        padding: 10px 20px 20px;
+        border-top: 1px solid #eee;
+        background: white;
+        box-shadow: 0 10px 20px rgba(17, 24, 39, 0.12);
+    }
+
+    .mobile-nav > a,
+    .mobile-nav form > button,
+    .mobile-account-trigger {
+        display: flex;
+        width: 100%;
+        min-height: 46px;
+        align-items: center;
+        padding: 12px 8px;
+        border: 0;
+        background: transparent;
+        color: #333;
+        font-size: 16px;
+        text-align: left;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .mobile-nav > a:hover,
+    .mobile-nav form > button:hover,
+    .mobile-account-trigger:hover {
+        background: #f5f5f5;
+    }
+
+    .mobile-account-trigger {
+        justify-content: space-between;
+    }
+
+    .mobile-account-links {
+        display: flex;
+        flex-direction: column;
+        padding-left: 14px;
+        border-left: 2px solid #e5e7eb;
+    }
+
+    .mobile-account-links a,
+    .mobile-account-links form > button {
+        display: block;
+        width: 100%;
+        padding: 11px 12px;
+        border: 0;
+        background: transparent;
+        color: #4b5563;
+        font-size: 15px;
+        text-align: left;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .mobile-account-links a:hover,
+    .mobile-account-links a:focus-visible,
+    .mobile-account-links form > button:hover,
+    .mobile-account-links form > button:focus-visible {
+        border-radius: 6px;
+        background: #f3f4f6;
+        color: #111827;
+        outline: none;
+    }
+
+    .account-menu-divider {
+        height: 1px;
+        margin: 6px 8px;
+        background: #e5e7eb;
+    }
+
+    .main-nav button:focus-visible,
+    .main-nav a:focus-visible {
+        outline: 2px solid #4f46e5;
+        outline-offset: 3px;
+    }
+
+    @media (max-width: 1000px) {
+        .nav-inner {
+            min-height: 64px;
+            padding: 0 20px;
+        }
+
+        .desktop-nav,
+        .desktop-auth {
+            display: none;
+        }
+
+        .mobile-menu-button {
+            display: inline-flex;
+        }
+    }
+
+    @media (min-width: 1001px) {
+        .mobile-menu-button,
+        .mobile-nav {
+            display: none !important;
+        }
+    }
+
     /* =========================
    HERO - MOBILE
 ========================= */

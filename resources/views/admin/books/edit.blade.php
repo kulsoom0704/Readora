@@ -80,19 +80,19 @@
             </div>
 
             <div class="form-group">
-                <label for="stock">Stock quantity</label>
-                <input
-                    type="number"
-                    id="stock"
-                    name="stock"
-                    value="{{ old('stock', $book->stock) }}"
-                    min="0"
-                    step="1"
-                >
-                <small>Leave blank if the current stock is unknown. Unknown stock cannot be reserved.</small>
-                @error('stock')
-                    <span class="error-message">{{ $message }}</span>
-                @enderror
+                <label>Stock (Inventory API)</label>
+                @if ($inventory['state'] === 'available')
+                    <p>{{ $inventory['stock'] }} available</p>
+                @elseif ($inventory['state'] === 'out_of_stock')
+                    <p>0 — out of stock</p>
+                @elseif ($inventory['state'] === 'unknown')
+                    <p>Unknown</p>
+                @elseif ($inventory['state'] === 'missing')
+                    <p>Not configured</p>
+                @else
+                    <p class="error-message">Availability could not be checked right now.</p>
+                @endif
+                <small>Stock is read-only in this phase and cannot be changed from this form.</small>
             </div>
 
             <div class="form-group">

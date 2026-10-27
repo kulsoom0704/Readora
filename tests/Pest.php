@@ -3,6 +3,43 @@
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+/** @return array{id: int, user_id: int, book_id: int, status: string, created_at: string, updated_at: string} */
+function reservationApiRecord(
+    int $id,
+    int $userId,
+    int $bookId,
+    string $status = 'active',
+    ?string $createdAt = null,
+    ?string $updatedAt = null,
+): array {
+    $timestamp = $createdAt ?? now()->toISOString();
+
+    return [
+        'id' => $id,
+        'user_id' => $userId,
+        'book_id' => $bookId,
+        'status' => $status,
+        'created_at' => $timestamp,
+        'updated_at' => $updatedAt ?? $timestamp,
+    ];
+}
+
+/** @param list<array{id: int, user_id: int, book_id: int, status: string, created_at: string, updated_at: string}> $records
+ * @return array{data: list<array{id: int, user_id: int, book_id: int, status: string, created_at: string, updated_at: string}>, meta: array{current_page: int, last_page: int, per_page: int, total: int}}
+ */
+function reservationApiList(array $records, int $lastPage = 1): array
+{
+    return [
+        'data' => $records,
+        'meta' => [
+            'current_page' => 1,
+            'last_page' => $lastPage,
+            'per_page' => 50,
+            'total' => count($records),
+        ],
+    ];
+}
+
 /*
 |--------------------------------------------------------------------------
 | Test Case

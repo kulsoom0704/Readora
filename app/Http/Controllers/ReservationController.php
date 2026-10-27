@@ -3,98 +3,126 @@
 namespace App\Http\Controllers;
 
 use App\Models\Book;
-use App\Models\Reservation;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Services\InventoryApiException;
+use App\Services\InventoryReservationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class ReservationController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request, InventoryReservationService $reservations): View
     {
-        $reservations = $request->user()
-            ->reservations()
-            ->with('book')
-            ->latest()
-            ->get();
+        $reservationError = null;
 
-        return view('reservations.index', compact('reservations'));
+        try {
+            $reservationRecords = $reservations->forUser($request->user());
+        } catch (InventoryApiException) {
+            $reservationRecords = collect();
+            $reservationError = 'Your reservations could not be loaded right now. Please try again later.';
+        }
+
+        return view('reservations.index', [
+            'reservations' => $reservationRecords,
+            'reservationError' => $reservationError,
+        ]);
     }
 
-    public function store(Request $request, Book $book): RedirectResponse
+    public function store(Request $request, Book $book, InventoryReservationService $reservations): RedirectResponse
     {
-        $reservation = DB::transaction(function () use ($request, $book): Reservation {
-            $updatedBooks = Book::query()
-                ->whereKey($book->getKey())
-                ->where('stock', '>=', 1)
-                ->decrement('stock');
+        $user = $request->user();
+        $idempotencySessionKey = 'inventory_reservation_keys.'.$user->getAuthIdentifier().'.'.$book->getKey();
+        $idempotencyKey = $request->input('idempotency_key');
 
-            if ($updatedBooks !== 1) {
-                throw ValidationException::withMessages([
-                    'reservation' => 'This book is not currently available.',
-                ]);
+        if ($idempotencyKey !== null) {
+            $request->validate([
+                'idempotency_key' => ['required', 'uuid'],
+            ]);
+        } else {
+            $idempotencyKey = $request->session()->get($idempotencySessionKey);
+        }
+
+        if (! is_string($idempotencyKey) || $idempotencyKey === '') {
+            $idempotencyKey = (string) Str::uuid();
+        }
+
+        $request->session()->put($idempotencySessionKey, $idempotencyKey);
+
+        try {
+            $reservation = $reservations->reserve($user, $book, $idempotencyKey);
+        } catch (InventoryApiException $exception) {
+            if ($exception->statusCode === 409) {
+                $request->session()->forget($idempotencySessionKey);
+                $request->session()->forget('reservation_retry_book');
+                $request->session()->forget('reservation_retry_user');
+
+                return redirect('/books/'.$book->getKey())
+                    ->with('reservation_error', 'This book is unavailable or the request conflicted. No reservation was confirmed.');
             }
 
-            return $request->user()->reservations()->create([
-                'book_id' => $book->getKey(),
-            ]);
-        });
+            $request->session()->put('reservation_retry_book', (int) $book->getKey());
+            $request->session()->put('reservation_retry_user', (int) $user->getAuthIdentifier());
 
-        return redirect()->route('reservations.confirmation', $reservation);
+            return redirect('/books/'.$book->getKey())
+                ->with('reservation_error', 'The Inventory API did not confirm this reservation. Please retry; the same request key will be reused safely.');
+        }
+
+        $request->session()->forget($idempotencySessionKey);
+        $request->session()->forget('reservation_retry_book');
+        $request->session()->forget('reservation_retry_user');
+
+        return redirect()->route('reservations.confirmation', $reservation->id);
     }
 
-    public function show(Request $request, Reservation $reservation): View
+    public function show(Request $request, int $reservationId, InventoryReservationService $reservations): View|RedirectResponse
     {
-        abort_unless(
-            (int) $reservation->user_id === (int) $request->user()->getAuthIdentifier(),
-            403
-        );
+        try {
+            $reservation = $reservations->findForUser($request->user(), $reservationId);
+        } catch (InventoryApiException $exception) {
+            if ($exception->statusCode === 403) {
+                abort(403);
+            }
 
-        $reservation->load('book');
+            if ($exception->statusCode === 404) {
+                abort(404);
+            }
+
+            return redirect()->route('reservations.index')
+                ->with('error', 'Reservation details could not be loaded right now.');
+        }
 
         return view('reservations.confirmation', compact('reservation'));
     }
 
-    public function cancel(Request $request, Reservation $reservation): RedirectResponse
+    public function cancel(Request $request, int $reservationId, InventoryReservationService $reservations): RedirectResponse
     {
-        abort_unless(
-            (int) $reservation->user_id === (int) $request->user()->getAuthIdentifier(),
-            403
-        );
-
-        $cancelled = DB::transaction(function () use ($reservation): bool {
-            $updatedReservations = Reservation::query()
-                ->whereKey($reservation->getKey())
-                ->where('status', 'active')
-                ->update([
-                    'status' => 'cancelled',
-                    'updated_at' => now(),
-                ]);
-
-            if ($updatedReservations !== 1) {
-                return false;
+        try {
+            $cancellation = $reservations->cancelForUser($request->user(), $reservationId);
+        } catch (InventoryApiException $exception) {
+            if ($exception->statusCode === 403) {
+                abort(403);
             }
 
-            $restoredBooks = Book::query()
-                ->whereKey($reservation->book_id)
-                ->increment('stock');
-
-            if ($restoredBooks !== 1) {
-                throw (new ModelNotFoundException)->setModel(Book::class, [$reservation->book_id]);
+            if ($exception->statusCode === 404) {
+                abort(404);
             }
 
-            return true;
-        });
+            if ($exception->statusCode === 409) {
+                return redirect()->route('reservations.index')
+                    ->with('info', 'Only active reservations with known stock can be cancelled. No cancellation was confirmed.');
+            }
 
-        if ($cancelled) {
             return redirect()->route('reservations.index')
-                ->with('success', 'Reservation cancelled. One copy was returned to stock.');
+                ->with('error', 'The Inventory API did not confirm cancellation. Please check the reservation status before retrying.');
+        }
+
+        if (! $cancellation['newly_cancelled']) {
+            return redirect()->route('reservations.index')
+                ->with('info', 'This reservation was already cancelled. No additional stock was restored.');
         }
 
         return redirect()->route('reservations.index')
-            ->with('info', 'This reservation is already cancelled. No stock was changed.');
+            ->with('success', 'Reservation cancelled. The Inventory API restored one copy to stock.');
     }
 }
