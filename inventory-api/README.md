@@ -5,7 +5,7 @@ This is a small, standalone Laravel API application for Readora's stock and rese
 ## Prerequisites
 
 - PHP 8.3 or newer with `pdo_sqlite` enabled (checked here with PHP 8.4.21).
-- Composer 2.9 or newer (checked here with Composer 2.9.5).
+- Composer 2.x. The project does not pin a Composer version.
 - PowerShell on Windows for the commands below.
 
 Laravel 13 requires PHP 8.3 or newer. This application uses Laravel 13 and runs separately from the Readora website.
@@ -32,7 +32,7 @@ Generate a random local service token:
 php -r "echo bin2hex(random_bytes(32)), PHP_EOL;"
 ```
 
-Copy the generated value into `INVENTORY_API_TOKEN` in this application's `.env`. Later, configure the same value in Readora's `.env` for backend-to-backend calls. Do not commit either `.env` file or put the token in Blade, JavaScript, or browser-visible configuration.
+Copy the generated value into `INVENTORY_API_TOKEN` in this application's `.env` and the root Readora `.env`. Readora's backend integration is implemented and uses this token for backend-to-backend calls. Do not commit either `.env` file or put the token in Blade, JavaScript, or browser-visible configuration.
 
 Generate a second random value for signed user and administrator identity assertions:
 
@@ -40,7 +40,7 @@ Generate a second random value for signed user and administrator identity assert
 php -r "echo bin2hex(random_bytes(32)), PHP_EOL;"
 ```
 
-Put it in `INVENTORY_IDENTITY_SECRET` in this application's `.env`. Readora's PHP backend will later use the same secret when signing identity claims. Keep both values in backend `.env` files only. The service token authenticates Readora as a service; the separate signature proves which user Readora authenticated and whether that user has its admin role.
+Put it in `INVENTORY_IDENTITY_SECRET` in this application's `.env` and the root Readora `.env`. Readora's PHP backend uses the same secret when signing identity claims. Keep both values in backend `.env` files only. The service token authenticates Readora as a service; the separate signature proves which user Readora authenticated and whether that user has its admin role.
 
 ## Create the API database
 
@@ -95,7 +95,7 @@ To confirm that authentication is required, call the same URL without a header; 
 curl.exe -i 'http://127.0.0.1:8001/api/v1/health'
 ```
 
-## Phase 2 API endpoints
+## API endpoints
 
 The API also verifies a signed Readora identity for user-specific actions. Readora's backend sends `X-Readora-User-Id`, `X-Readora-Role` (`user` or `admin`), `X-Readora-Timestamp`, and `X-Readora-Signature`. The signature is a lowercase hexadecimal HMAC-SHA256, using `INVENTORY_IDENTITY_SECRET` and this exact UTF-8 message:
 

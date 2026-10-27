@@ -1,179 +1,55 @@
-## Readora Project 
-- Readora – Laravel Book Club Platform
-## Project Overview
+# Readora
 
-- Project Name: Readora
-- Framework: Laravel
-- Project Type: Book Club / Book Management Website
+Readora is a bookstore website for browsing books, reserving copies, and reviewing books after purchase. It combines a Laravel and Blade website with a separate Inventory API that manages stock and reservations.
 
-- Readora is a web platform where users can discover books, browse categories, manage profiles, and interact with the system through a secure login system. The platform contains two user roles:
+Readora began as my own project last year. I reused that foundation and extended it for this assignment.
 
-- Regular User
-- Admin
+## Features
 
-- Admins have additional permissions such as managing users, managing books and assigning admin rights.
+- Browse books and categories, view book details, and use the FAQ and contact pages.
+- Register, sign in, and manage a profile.
+- Manage books and stock as an administrator.
+- Reserve and cancel copies; administrators can mark reservations as purchased.
+- Review a book after purchase, with one review per user and book.
 
-## How to Run the Project
-- Clone the repository
-- Open a terminal and run :  git clone https://github.com/kulsoom0704/Readora.git
-- cd Readora
-- Install dependencies : composer install
-- npm install
-- Configure the environment : Create your local environment   file:copy .env.example .env
-- Generate the application key : php artisan key:generate
-- Run the migrations and seeders : php artisan migrate --seed
-- Build frontend assets : npm run build
-- Run the application : Open the project through Laravel Herd, or - - use Laravel's development server : php artisan serve
+## How the applications fit together
 
+```text
+Browser -> Readora website (Blade + Laravel backend) --HTTP/JSON--> Inventory API
+                    |                                                   |
+                    v                                                   v
+          Readora SQLite database                         Inventory API SQLite database
+```
 
-## Functionalities
-Authentication System
+The website and its backend are one Laravel application. The Inventory API is a separate Laravel backend. Readora calls it from server-side PHP; the apps use separate databases and do not share API secrets with the browser.
 
-- Visitors can:
-- Register a new account
-- Log in to their account
-- Log out securely
+## Technologies
 
-- The authentication system is built using Laravel authentication features.
+- PHP 8.4+, Laravel 13, Blade
+- Tailwind CSS 3, Alpine.js, Vite
+- SQLite
+- A separate Laravel 13 Inventory API
 
-- User Roles
-- Regular User
-- A regular user can:
-- View books
-- Browse categories
-- Edit their profile
-- Access their dashboard
+## Project structure
 
-## Admin:
-- An admin can:
-- Promote users to admin
-- Remove admin rights
-- Manage users
-- Access admin pages
-- manage books
-- add and edit books
-- Admin routes are protected using middleware
-- Username: admin
-- Email: admin@ehb.be
-- Password: Password!321
+- `app/`, `routes/`, `resources/`, and `database/`: Readora's backend, website, and database migrations.
+- `tests/`: Readora's automated tests.
+- `inventory-api/`: the standalone Inventory API, its own database, and its tests.
+- `docs/`: installation, testing, deployment, project plan, and references.
 
-## Profile System:
-- Each user has:
-- Name
-- Email
-- Password
-- delete account
-- Users can update their profile information.
+## Getting started
 
-## Book Categories:
-- Books are divided into categories such as:
-- Fantasy
-- Romance
-- Science Fiction
-- Mystery
-- Horror
-- History
-- Categories help users easily browse books.
+See [Installation](docs/INSTALLATION.md) for prerequisites and step-by-step instructions to configure and run both applications.
 
-## home page:
-After logging in, users are redirected to home page where they can:
-- Navigate through the website
-- Access profile settings
-- Browse books and categories
+## Testing
 
-## Technologies Used
-- Technology        - Purpose
-- PHP	                Backend programming - language
-- Laravel	            MVC Framework
-- Blade	            Frontend templating engine
-- HTML/CSS	        Frontend structure and styling
-- Bootstrap/Tailwind	UI styling
-- Laravel Herd	    Local development environment
-- Git & GitHub	    Version control
+Both applications have separate test suites. See [Testing](docs/TESTING.md) for the commands and safe in-memory database setup.
 
-## MVC Structure
+## More documentation
 
-- The project follows the MVC architecture:
+- [Deployment](docs/DEPLOYMENT.md)
+- [Project plan](docs/PROJECT_PLAN.md)
+- [References and AI assistance](docs/REFERENCES.md)
+- [Inventory API guide](inventory-api/README.md)
 
-- Model:
-- Handles database interaction and logic.
--Examples:
-User model,
-Category model,
-Book model
-
-- View:
-- Handles the frontend using Blade templates.
-- Examples:
-home page,
-Profile page,
-Category page
-
-## Controller:
-- Handles application logic between models and views.
-- Examples:
-ProfileController,
-CategoryController, 
-AdminController
-
-## Database Structure
--Users Table
-Contains:
-- id
-- name
-- email
-- password
-- is_admin
-
-## Categories Table:
-- Contains:
-- id
-- name
-
-- Books Table:
-- Contains:
-- id
-- title
-- author
-- description
-- category_id
-
-## Middleware Protection
-Admin routes are protected with middleware to prevent normal users from accessing admin functionalities.
-- Example protected route:
-- Route::middleware(['admin'])->group(function () {
-    Route::get('/admin/users', [AdminController::class, 'index']);
-});
-
-## Security Features:
-- The project includes:
-- Password hashing
-- Authentication protection
-- Middleware authorization
-- CSRF protection
-- Form validation
-
-## Challenges Faced
--During development, some challenges included:
-- Understanding Laravel MVC structure
-- Setting up middleware correctly
-- Protecting admin routes
-- Learning Blade templates
-- Git and GitHub integration
-- These problems were solved through testing and debugging.
-
-## What I Learned:
--Through this project, I learned:
-Laravel basics
-- MVC architecture
-- Authentication systems
-- Route protection with middleware
-- Database migrations
-- Git and GitHub usage
-- Blade templating
-- Basic full-stack web development
-
-## Conclusion:
-- Readora is a Laravel-based book club platform created to practice full-stack web development concepts. 
-- The project demonstrates authentication systems, role management, MVC architecture, middleware security, and database relationships using Laravel.
-- The project helped improve backend development skills and understanding of modern web development workflows.
+The project has not been deployed to production; the deployment guide describes steps to prepare a deployment.
